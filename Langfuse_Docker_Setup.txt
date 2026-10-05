@@ -1,0 +1,122 @@
+Step 1: Check Docker
+
+docker --version
+docker compose version
+docker info
+
+Step 2: Download the current Langfuse v4 setup
+
+cd D:\
+mkdir Langfuse-Configuration
+cd Langfuse-Configuration
+git clone https://github.com/langfuse/langfuse.git
+
+Step 3: Configure docker-compose.yml file
+
+-> Instead of modifying all the secret values directly inside docker-compose.yml, create .env file in same folder path where docker-compose.yml exists.
+->Generate secrets key using:
+		python -c "import secrets; print(secrets.token_hex(32))"
+
+
+Paste the below content in .env file
+
+# ============================================================
+# Langfuse - Self Hosted
+# ============================================================
+
+# ------------------------------------------------------------
+# PostgreSQL
+# ------------------------------------------------------------
+
+POSTGRES_USER= (your db user name)
+POSTGRES_PASSWORD=(your db password)
+POSTGRES_DB=langfuse_track
+
+DATABASE_URL=postgresql://postgres:sobana@postgres:5432/langfuse_track
+
+# ------------------------------------------------------------
+# Langfuse security
+# ------------------------------------------------------------
+#  generate using python -c "import secrets; print(secrets.token_hex(32))"
+
+SALT=db95c04ceb0b69303df9e93909017ccb71bd9b2732395001fef03dc56756be80
+
+ENCRYPTION_KEY=02f591c99c5c7a7aa5a0d10c6559c17318026f599163a891d1d7c1c680dd11a6
+
+NEXTAUTH_SECRET=6fb852a93408b78217df827eb726a3344f502c949c1d95f03c10f7adc928d3ab
+
+
+# ------------------------------------------------------------
+# ClickHouse
+# ------------------------------------------------------------
+
+CLICKHOUSE_USER=clickhouse
+CLICKHOUSE_PASSWORD= (configure the password. should contains atleast 9 characters)
+
+
+# ------------------------------------------------------------
+# Redis
+# ------------------------------------------------------------
+
+REDIS_AUTH=(configure the password. should contains atleast 9 characters)
+
+# ------------------------------------------------------------
+# MinIO
+# ------------------------------------------------------------
+
+MINIO_ROOT_USER=minio
+MINIO_ROOT_PASSWORD=(configure the password.should contains atleast 9 characters)
+
+LANGFUSE_S3_EVENT_UPLOAD_SECRET_ACCESS_KEY=(configure the password. should contains atleast 9 characters)
+LANGFUSE_S3_MEDIA_UPLOAD_SECRET_ACCESS_KEY=(configure the password. should contains atleast 9 characters)
+LANGFUSE_S3_BATCH_EXPORT_SECRET_ACCESS_KEY=(configure the password. should contains atleast 9 characters)
+
+
+# ------------------------------------------------------------
+# Langfuse URL
+# ------------------------------------------------------------
+
+NEXTAUTH_URL=http://localhost:3000
+
+Once saved and started if there ar any changes done in .env file run this command: docker compose down.
+
+
+-> Open the docker-compose.yml in the postgres section comment these lines:
+
+  ports:
+  - "127.0.0.1:5432:5432"
+
+If changes done in .env or docker-compose.yml file run this command: docker compose down.
+
+
+-> Command to start Langfuse application: docker compose up -d
+     If you get any container is unhealthy run that particular command:
+         docker compose logs postgres --tail=100
+	 docker compose logs clickhouse --tail=100
+	 docker compose logs redis --tail=100
+	 docker compose logs minio --tail=100
+	 docker compose logs langfuse-worker --tail=100
+    Eg: if it shows "dependency failed to start: container langfuse-minio-1 is unhealthy" then run docker compose logs minio --tail=100
+
+-> Command to check the status of service: docker compose ps
+
+-> It will run on the port localhost:3000
+
+Step 4: Project Configuration
+
+open:
+	http://localhost:3000
+
+Create a account and get logged in.
+Create Organization and Project.
+Create new API Key. It will ask for notes. Once it is done it will provide with keys. Before closing the tab save all the keys clearly. Because key can be view only one time.
+
+It contains like
+
+.env 
+LANGFUSE_SECRET_KEY="sk-lf-3c3................"
+LANGFUSE_PUBLIC_KEY="pk-lf-f8b9..............."
+LANGFUSE_BASE_URL="http://localhost:3000"
+
+Paste these keys in Code base .env not in docker-compose releated .env
+
